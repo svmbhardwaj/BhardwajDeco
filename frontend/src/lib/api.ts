@@ -1,7 +1,7 @@
 import { Enquiry, EnquiryPayload, Product, ProductCategory, ProductSpecification, UpdatePost } from "./types";
+import { resolveApiBaseUrl } from "./api-base";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:5000/api";
+const API_BASE_URL = resolveApiBaseUrl();
 
 const AUTH_TOKEN_KEY = "bhardwajdeco_admin_token";
 
@@ -134,7 +134,7 @@ async function apiRequest<T>(path: string, options: RequestInit = {}, requiresAu
       headers
     });
   } catch {
-    throw new Error("Unable to connect to server. Please start backend API on port 5000.");
+    throw new Error("Unable to connect to the API. Set NEXT_PUBLIC_API_BASE_URL to your deployed backend URL or verify the Vercel backend service.");
   }
 
   const payload = await response.json().catch(() => ({}));

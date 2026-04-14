@@ -1,18 +1,28 @@
 import mongoose from "mongoose";
 import { env } from "./env.js";
 
+let listenersRegistered = false;
+
 export async function connectDB() {
-  mongoose.connection.on("connected", () => {
-    console.log("✅ MongoDB connected successfully");
-  });
+  if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
+    return mongoose.connection;
+  }
 
-  mongoose.connection.on("disconnected", () => {
-    console.warn("⚠️  MongoDB disconnected");
-  });
+  if (!listenersRegistered) {
+    mongoose.connection.on("connected", () => {
+      console.log("✅ MongoDB connected successfully");
+    });
 
-  mongoose.connection.on("error", (err) => {
-    console.error("❌ MongoDB connection error:", err.message);
-  });
+    mongoose.connection.on("disconnected", () => {
+      console.warn("⚠️  MongoDB disconnected");
+    });
+
+    mongoose.connection.on("error", (err) => {
+      console.error("❌ MongoDB connection error:", err.message);
+    });
+
+    listenersRegistered = true;
+  }
 
   await mongoose.connect(env.mongoUri, {
     autoIndex: !env.isProduction
@@ -27,4 +37,6 @@ export async function connectDB() {
 
   process.on("SIGINT", () => shutdown("SIGINT"));
   process.on("SIGTERM", () => shutdown("SIGTERM"));
+
+  return mongoose.connection;
 }

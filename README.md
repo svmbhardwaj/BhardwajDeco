@@ -86,6 +86,10 @@ Frontend (`frontend/.env.local`):
 - `NEXT_PUBLIC_CONTACT_ADDRESS`
 - `NEXT_PUBLIC_CONTACT_LABEL`
 
+If you deploy on Vercel as two separate projects, set `NEXT_PUBLIC_API_BASE_URL` to the deployed backend URL, for example `https://your-backend.vercel.app/api`.
+If the backend is separate, also set `FRONTEND_URL` in the backend project to your frontend deployment URL so CORS accepts browser requests.
+If you use the monorepo Vercel service setup in this repo, the frontend can resolve the backend automatically through the `/_/backend/api` route prefix.
+
 ## Branding Compliance
 
 - All catalog entries are treated as BhardwajDeco products

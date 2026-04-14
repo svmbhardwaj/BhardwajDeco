@@ -1,5 +1,6 @@
-export const apiBaseUrl =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:5000/api";
+import { resolveApiBaseUrl } from "./api-base";
+
+export const apiBaseUrl = resolveApiBaseUrl();
 
 export const siteContact = {
   phone: process.env.NEXT_PUBLIC_CONTACT_PHONE || "+91 7739929092",

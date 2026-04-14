@@ -55,6 +55,7 @@ app.use(compression());
 // ─── CORS ───
 const allowedOrigins = [
   env.frontendUrl,
+  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "",
   "http://localhost:3000",
   "http://localhost:3001"
 ].filter(Boolean);
@@ -206,4 +207,13 @@ async function bootstrap() {
   }
 }
 
-bootstrap();
+const shouldStartStandaloneServer = process.env.VERCEL !== "1" && !process.env.AWS_LAMBDA_FUNCTION_NAME;
+
+if (shouldStartStandaloneServer) {
+  await bootstrap();
+} else {
+  await connectDB();
+}
+
+export default app;
+export { bootstrap };

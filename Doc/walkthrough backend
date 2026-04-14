@@ -1,0 +1,175 @@
+# BhardwajDeco Backend — Production Architecture Walkthrough
+
+## Summary
+
+Upgraded the BhardwajDeco backend from a basic Express/MongoDB CRUD scaffold into a **production-grade** system with **25 files** across 8 architectural layers.
+
+---
+
+## Architecture Diagram
+
+```mermaid
+graph TB
+    Client["Frontend / API Client"]
+    
+    subgraph Security["Security Layer"]
+        Helmet["Helmet (Headers)"]
+        RateLimit["Rate Limiter"]
+        MongoSanitize["Mongo Sanitize"]
+        XSS["XSS Clean"]
+        CORS["CORS"]
+    end
+    
+    subgraph Auth["Auth Layer"]
+        JWT["JWT Verify"]
+        Admin["Admin Model"]
+    end
+    
+    subgraph Routes["Route Layer"]
+        AuthR["/api/auth"]
+        ProductsR["/api/products"]
+        EnquiriesR["/api/enquiries"]
+        UpdatesR["/api/updates"]
+        UploadsR["/api/uploads"]
+        AIR["/api/ai"]
+    end
+    
+    subgraph Validation["Validation"]
+        VP["validateProduct"]
+        VE["validateEnquiry"]
+        VL["validateLogin"]
+        VU["validateUpdate"]
+    end
+    
+    subgraph Controllers["Controller Layer"]
+        AuthC["authController"]
+        ProductC["productController"]
+        EnquiryC["enquiryController"]
+        UpdateC["updateController"]
+    end
+    
+    subgraph Services["Service Layer"]
+        Mailer["Email (Nodemailer)"]
+        WhatsApp["WhatsApp (Twilio)"]
+        AI["AI Enhancer (OpenAI)"]
+        Cloud["Cloudinary"]
+    end
+    
+    subgraph DB["Database"]
+        MongoDB["MongoDB"]
+    end
+    
+    Client --> Security --> Routes
+    Routes --> Auth
+    Routes --> Validation
+    Auth --> Controllers
+    Validation --> Controllers
+    Controllers --> Services
+    Controllers --> DB
+    
+    subgraph ErrorHandling["Error Handling"]
+        EH["Centralized errorHandler"]
+    end
+    
+    Controllers -.-> EH
+```
+
+---
+
+## What Changed
+
+### New Files (15)
+
+| File | Purpose |
+|------|---------|
+| [Admin.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/models/Admin.js) | Admin model with bcrypt password hashing |
+| [auth.js (middleware)](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/middleware/auth.js) | JWT token verification middleware |
+| [errorHandler.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/middleware/errorHandler.js) | Centralized error classification |
+| [validate.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/middleware/validate.js) | Input validation chains |
+| [authController.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/controllers/authController.js) | Login + profile endpoints |
+| [productController.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/controllers/productController.js) | Product CRUD with pagination/filtering |
+| [enquiryController.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/controllers/enquiryController.js) | Enquiry management + notifications |
+| [updateController.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/controllers/updateController.js) | Update post CRUD |
+| [auth.js (route)](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/routes/auth.js) | Auth API endpoints |
+| [ai.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/routes/ai.js) | AI description enhancement endpoint |
+| [whatsapp.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/services/whatsapp.js) | WhatsApp click-to-chat + Twilio API |
+| [aiEnhancer.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/services/aiEnhancer.js) | OpenAI GPT-4o-mini integration |
+
+### Modified Files (10)
+
+| File | Changes |
+|------|---------|
+| [package.json](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/package.json) | +12 production dependencies |
+| [.env.example](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/.env.example) | Auth, AI, WhatsApp, security vars |
+| [env.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/config/env.js) | All new environment mappings |
+| [db.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/config/db.js) | Connection events + graceful shutdown |
+| [server.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/server.js) | Full security middleware stack |
+| [Enquiry.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/models/Enquiry.js) | Added isRead, status fields + indexes |
+| [Product.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/models/Product.js) | Extended specs, price, text search index |
+| [products.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/routes/products.js) | Auth + validation + controller pattern |
+| [enquiries.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/routes/enquiries.js) | Auth + validation + controller pattern |
+| [updates.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/routes/updates.js) | Auth + validation + controller pattern |
+| [uploads.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/routes/uploads.js) | Auth + file validation + CDN optimization |
+| [seedData.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/seed/seedData.js) | Admin seeding + enriched sample data |
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Auth | Purpose |
+|--------|----------|------|---------|
+| `POST` | `/api/auth/login` | Public | Admin login → JWT token |
+| `GET` | `/api/auth/me` | 🔒 | Get admin profile |
+| `GET` | `/api/products` | Public | List products (paginated, filterable) |
+| `GET` | `/api/products/:slug` | Public | Get product by slug |
+| `POST` | `/api/products` | 🔒 | Create product |
+| `PUT` | `/api/products/:id` | 🔒 | Update product |
+| `DELETE` | `/api/products/:id` | 🔒 | Delete product |
+| `POST` | `/api/enquiries` | Public | Submit enquiry |
+| `GET` | `/api/enquiries` | 🔒 | List enquiries |
+| `PATCH` | `/api/enquiries/:id/read` | 🔒 | Mark as read |
+| `PATCH` | `/api/enquiries/:id/status` | 🔒 | Update status |
+| `DELETE` | `/api/enquiries/:id` | 🔒 | Delete enquiry |
+| `GET` | `/api/updates` | Public | List updates |
+| `GET` | `/api/updates/:slug` | Public | Get update by slug |
+| `POST` | `/api/updates` | 🔒 | Create update |
+| `PUT` | `/api/updates/:id` | 🔒 | Update post |
+| `DELETE` | `/api/updates/:id` | 🔒 | Delete update |
+| `POST` | `/api/uploads/image` | 🔒 | Upload image to Cloudinary |
+| `POST` | `/api/ai/enhance-description` | 🔒 | AI-polish description |
+
+---
+
+## Getting Started
+
+```bash
+# 1. Create .env from example
+cp .env.example .env
+# Edit .env with your MongoDB URI, JWT secret, etc.
+
+# 2. Install dependencies
+cd backend && npm install
+
+# 3. Seed the database (creates admin + sample data)
+npm run seed
+
+# 4. Start development server
+npm run dev
+
+# 5. Test login
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@bhardwajdeco.com","password":"BhardwajDeco@2026!"}'
+```
+
+---
+
+## Security Features
+
+- **Helmet** — Sets 15+ HTTP security headers
+- **Rate Limiting** — 100 req/15min (API), 10 req/15min (auth)  
+- **Mongo Sanitize** — Prevents `$gt`, `$where` injection
+- **XSS Clean** — Strips `<script>` tags from inputs
+- **CORS** — Locked to frontend URL only
+- **JWT** — 7-day expiry, bcrypt-12 password hashing
+- **Centralized Errors** — Safe messages in production (no stack traces)

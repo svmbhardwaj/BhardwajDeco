@@ -1,0 +1,359 @@
+# BhardwajDeco Backend — Production-Level Architecture Upgrade
+
+Upgrade the existing Express/MongoDB backend from a basic CRUD scaffold into a production-grade system with authentication, security hardening, AI-powered descriptions, and WhatsApp enquiry integration.
+
+## User Review Required
+
+> [!IMPORTANT]
+> **API Keys Needed**: The AI description feature requires an OpenAI API key (`OPENAI_API_KEY`). The WhatsApp Twilio integration requires `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and `TWILIO_WHATSAPP_FROM`. These are optional — the system gracefully degrades without them.
+
+> [!WARNING]
+> **Breaking Change**: All admin-facing routes (`POST /products`, `PUT /products/:id`, `DELETE /products/:id`, `GET /enquiries`, `POST /updates`, etc.) will now require a JWT `Authorization: Bearer <token>` header. The public routes (`GET /products`, `GET /products/:slug`, `POST /enquiry`, `GET /updates`) remain open.
+
+> [!IMPORTANT]
+> **Admin Credentials**: A single admin is created via `npm run seed`. Default credentials will be `admin@bhardwajdeco.com` / `BhardwajDeco@2026!`. You should change the password immediately after first login.
+
+---
+
+## Proposed Changes
+
+### 1. New Dependencies
+
+#### [MODIFY] [package.json](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/package.json)
+
+Add the following production dependencies:
+
+| Package | Purpose |
+|---------|---------|
+| `bcryptjs` | Password hashing for admin auth |
+| `jsonwebtoken` | JWT token generation & verification |
+| `helmet` | HTTP security headers |
+| `express-rate-limit` | API rate limiting |
+| `express-mongo-sanitize` | Prevent NoSQL injection |
+| `xss-clean` | Sanitize user input against XSS |
+| `express-validator` | Request body validation |
+| `openai` | AI-powered description enhancement |
+| `twilio` | WhatsApp API integration (optional) |
+| `morgan` | HTTP request logging |
+| `compression` | Gzip response compression |
+
+---
+
+### 2. Environment Configuration
+
+#### [MODIFY] [.env.example](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/.env.example)
+
+Add new environment variables:
+
+```env
+# Auth
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+JWT_EXPIRES_IN=7d
+ADMIN_EMAIL=admin@bhardwajdeco.com
+ADMIN_PASSWORD=BhardwajDeco@2026!
+
+# AI Enhancement
+OPENAI_API_KEY=
+
+# WhatsApp / Twilio
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
+WHATSAPP_BUSINESS_NUMBER=919876543210
+
+# Security
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX=100
+```
+
+#### [MODIFY] [env.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/config/env.js)
+
+Expand the `env` object to include all new variables.
+
+---
+
+### 3. Admin Model & Authentication
+
+#### [NEW] `src/models/Admin.js`
+
+```js
+// Mongoose schema with:
+// - email (unique, required)
+// - password (hashed via bcrypt pre-save hook)
+// - Instance method: comparePassword(candidatePassword)
+```
+
+#### [NEW] `src/middleware/auth.js`
+
+```js
+// - verifyToken: Extracts JWT from "Authorization: Bearer <token>", 
+//   verifies with JWT_SECRET, attaches admin to req.admin
+// - Returns 401 on missing/invalid token
+```
+
+#### [NEW] `src/controllers/authController.js`
+
+```js
+// POST /auth/login
+// - Validates email + password
+// - Checks against Admin collection
+// - Returns JWT token + admin info on success
+// - Returns 401 on invalid credentials
+```
+
+#### [NEW] `src/routes/auth.js`
+
+Route definition for `POST /auth/login`.
+
+---
+
+### 4. Security Middleware Stack
+
+#### [MODIFY] [server.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/server.js)
+
+Integrate the full security middleware stack at the app level:
+
+```js
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import mongoSanitize from "express-mongo-sanitize";
+import xssClean from "xss-clean";
+import morgan from "morgan";
+import compression from "compression";
+
+// Security headers
+app.use(helmet());
+
+// Request logging
+app.use(morgan("combined"));
+
+// Response compression
+app.use(compression());
+
+// Rate limiting
+app.use("/api/", rateLimit({
+  windowMs: env.rateLimitWindowMs,
+  max: env.rateLimitMax,
+  message: { message: "Too many requests, please try again later" }
+}));
+
+// NoSQL injection prevention
+app.use(mongoSanitize());
+
+// XSS prevention
+app.use(xssClean());
+```
+
+#### [NEW] `src/middleware/errorHandler.js`
+
+Centralized error handler with:
+- Mongoose validation errors → 400 with field-level messages
+- Mongoose duplicate key → 409 conflict
+- JWT errors → 401 unauthorized
+- Cast errors → 400 bad request
+- Generic → 500 with safe message (no stack in production)
+
+#### [NEW] `src/middleware/validate.js`
+
+Express-validator wrapper for reusable input validation chains:
+- `validateProduct` — name, category, finish, description, heroImage required
+- `validateEnquiry` — name, email (valid format), phone, productId required
+- `validateLogin` — email + password required
+- `validateUpdate` — title, excerpt, coverImage required
+
+---
+
+### 5. Controller Layer (Separation of Concerns)
+
+Currently routes contain all business logic inline. We'll extract into controllers:
+
+#### [NEW] `src/controllers/productController.js`
+
+- `getProducts` — with pagination, category/finish filtering, total count header
+- `getProductBySlug`
+- `createProduct` — with input validation
+- `updateProduct`
+- `deleteProduct` — with Cloudinary image cleanup
+
+#### [NEW] `src/controllers/enquiryController.js`
+
+- `getEnquiries` — admin-only, with pagination & isRead filter
+- `submitEnquiry` — public, sends email + WhatsApp notification
+- `markEnquiryRead` — admin-only
+- `deleteEnquiry` — admin-only
+
+#### [NEW] `src/controllers/updateController.js`
+
+- `getUpdates` — public, with pagination
+- `getUpdateBySlug` — public
+- `createUpdate` — admin-only
+- `updateUpdate` — admin-only
+- `deleteUpdate` — admin-only
+
+---
+
+### 6. Route Protection
+
+#### [MODIFY] [products.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/routes/products.js)
+
+```diff
+- router.post("/", async (req, res, next) => { ... });
++ router.post("/", verifyToken, validateProduct, productController.createProduct);
++ router.put("/:id", verifyToken, validateProduct, productController.updateProduct);
++ router.delete("/:id", verifyToken, productController.deleteProduct);
+  // GET routes remain public
+```
+
+Same pattern applied to `enquiries.js` and `updates.js`.
+
+---
+
+### 7. WhatsApp Integration
+
+#### [NEW] `src/services/whatsapp.js`
+
+```js
+// Two modes:
+// 1. Click-to-chat URL generator (always available)
+//    → Generates https://wa.me/{number}?text={encoded_message}
+// 2. Twilio WhatsApp API (when TWILIO keys present)
+//    → Sends structured WhatsApp message to admin on new enquiry
+```
+
+#### [MODIFY] [enquiries.js route](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/routes/enquiries.js)
+
+POST enquiry → triggers both email notification AND WhatsApp notification.
+
+---
+
+### 8. AI Description Enhancement
+
+#### [NEW] `src/services/aiEnhancer.js`
+
+```js
+// - Uses OpenAI GPT-4o-mini for cost efficiency
+// - enhanceDescription(rawText): returns polished product description
+// - Fixes grammar, improves readability, maintains brand voice
+// - Graceful fallback: returns original text if API unavailable
+// - Rate limited to prevent API cost overrun
+```
+
+#### [NEW] `src/routes/ai.js`
+
+```
+POST /api/ai/enhance-description
+Body: { text: "raw product description" }
+Response: { enhanced: "polished description", original: "raw text" }
+```
+
+Admin-only endpoint protected by `verifyToken`.
+
+---
+
+### 9. Enhanced Database Models
+
+#### [MODIFY] [Enquiry.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/models/Enquiry.js)
+
+Add `isRead` field (Boolean, default: false) and `status` enum (`new`, `contacted`, `closed`).
+
+#### [MODIFY] [Product.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/models/Product.js)
+
+Add extended `specifications` sub-schema fields (material, weight, application, warranty) to match frontend types. Add `price` field.
+
+#### [MODIFY] [UpdatePost.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/models/UpdatePost.js)
+
+No structural changes needed — already well-defined.
+
+---
+
+### 10. Seed Script Enhancement
+
+#### [MODIFY] [seedData.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/seed/seedData.js)
+
+- Create admin user with hashed password
+- Seed sample products & updates (existing)
+- Idempotent: skip if admin already exists
+
+---
+
+### 11. Database Connection Hardening
+
+#### [MODIFY] [db.js](file:///c:/Users/svmbh/OneDrive/Desktop/BhardwajDeco/backend/src/config/db.js)
+
+- Add connection event listeners (connected, disconnected, error)
+- Add graceful shutdown handlers (SIGINT, SIGTERM)
+- Log connection status
+
+---
+
+## Final File Structure
+
+```
+backend/
+├── .env.example
+├── package.json
+└── src/
+    ├── server.js                    (MODIFIED — security stack)
+    ├── config/
+    │   ├── db.js                    (MODIFIED — connection hardening)
+    │   └── env.js                   (MODIFIED — new env vars)
+    ├── controllers/                 (NEW directory)
+    │   ├── authController.js
+    │   ├── productController.js
+    │   ├── enquiryController.js
+    │   └── updateController.js
+    ├── middleware/                   (NEW directory)
+    │   ├── auth.js
+    │   ├── errorHandler.js
+    │   └── validate.js
+    ├── models/
+    │   ├── Admin.js                 (NEW)
+    │   ├── Enquiry.js               (MODIFIED)
+    │   ├── Product.js               (MODIFIED)
+    │   └── UpdatePost.js            (unchanged)
+    ├── routes/
+    │   ├── auth.js                  (NEW)
+    │   ├── ai.js                    (NEW)
+    │   ├── enquiries.js             (MODIFIED)
+    │   ├── products.js              (MODIFIED)
+    │   ├── updates.js               (MODIFIED)
+    │   └── uploads.js               (MODIFIED — add auth)
+    ├── seed/
+    │   └── seedData.js              (MODIFIED — seeds admin)
+    ├── services/
+    │   ├── aiEnhancer.js            (NEW)
+    │   ├── mailer.js                (unchanged)
+    │   └── whatsapp.js              (NEW)
+    └── utils/
+        └── cloudinary.js            (unchanged)
+```
+
+---
+
+## Open Questions
+
+> [!IMPORTANT]
+> **WhatsApp Business Number**: What is the actual WhatsApp Business number to use for click-to-chat and Twilio notifications? I'll use a placeholder for now.
+
+> [!IMPORTANT]
+> **AI Model Preference**: The plan uses OpenAI's `gpt-4o-mini` for cost efficiency. Would you prefer a different model (e.g., Claude, GPT-4o)?
+
+---
+
+## Verification Plan
+
+### Automated Tests
+1. Install dependencies: `npm install`
+2. Run seed script: `npm run seed` (requires MongoDB running)
+3. Start server: `npm run dev`
+4. Test health endpoint: `GET /health`
+5. Test login: `POST /api/auth/login` with admin credentials
+6. Test protected route without token → expect 401
+7. Test protected route with valid token → expect success
+8. Test rate limiting by sending 100+ rapid requests
+9. Test enquiry submission triggers email (if SMTP configured)
+
+### Manual Verification
+- Verify security headers via browser DevTools (Helmet headers present)
+- Test AI enhancement endpoint with sample text
+- Verify WhatsApp click-to-chat URL generates correctly

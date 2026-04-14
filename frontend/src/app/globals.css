@@ -1,0 +1,259 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap");
+
+:root {
+  --bg: #050505;
+  --bg-card: #0d0d0d;
+  --bg-elevated: #141414;
+  --text: #f7f7f7;
+  --text-muted: #c0c0ca;
+  --gold: #c5a46d;
+  --gold-light: #d5b881;
+  --gold-dim: rgba(197, 164, 109, 0.15);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.18);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Inter", "Avenir Next", "Helvetica Neue", Helvetica, sans-serif;
+  line-height: 1.55;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-image: radial-gradient(
+    circle at 12% 16%,
+    rgba(197, 164, 109, 0.08),
+    rgba(0, 0, 0, 0) 48%
+  );
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+  letter-spacing: 0.01em;
+}
+
+/* ── Brand in Navbar ── */
+.brand-link {
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+}
+
+.brand-logo {
+  border: 1px solid rgba(197, 164, 109, 0.55);
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #ececec 65%, #d8d8d8 100%);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.28), 0 8px 24px rgba(0, 0, 0, 0.38);
+}
+
+.brand-logo-image {
+  filter: contrast(1.2) saturate(0.95);
+}
+
+.brand-wordmark {
+  letter-spacing: 0.05em;
+  color: #f5f5f5;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(197, 164, 109, 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(197, 164, 109, 0.5);
+}
+
+/* ── Texture & Panels ── */
+.texture-overlay {
+  background-image: linear-gradient(
+    120deg,
+    rgba(0, 0, 0, 0.58),
+    rgba(0, 0, 0, 0.18)
+  );
+}
+
+.panel-gradient {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.01)
+  );
+}
+
+/* ── Glassmorphism ── */
+.glass {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-gold {
+  background: rgba(197, 164, 109, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(197, 164, 109, 0.15);
+}
+
+/* ── Masonry ── */
+.masonry-columns {
+  column-count: 1;
+  column-gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .masonry-columns {
+    column-count: 2;
+  }
+}
+
+@media (min-width: 1200px) {
+  .masonry-columns {
+    column-count: 3;
+  }
+}
+
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 1.25rem;
+}
+
+/* ── Skeleton / Shimmer ── */
+.skeleton {
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.08) 20%,
+    rgba(255, 255, 255, 0.16) 35%,
+    rgba(255, 255, 255, 0.08) 50%
+  );
+  background-size: 250% 100%;
+  animation: shimmer 1.8s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+/* ── Gradient text ── */
+.gradient-text {
+  background: linear-gradient(135deg, #c5a46d, #e8d5b0, #c5a46d);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Animated gradient border ── */
+.gradient-border {
+  position: relative;
+}
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(197, 164, 109, 0.5), rgba(197, 164, 109, 0.1), rgba(197, 164, 109, 0.5));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* ── Glow pulse ── */
+@keyframes glowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(197, 164, 109, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(197, 164, 109, 0.25);
+  }
+}
+
+.glow-pulse {
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+/* ── Float animation ── */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* ── Admin sidebar ── */
+.admin-sidebar {
+  background: linear-gradient(180deg, #0a0a0a, #111111);
+}
+
+/* ── Image upload drop zone ── */
+.drop-zone {
+  border: 2px dashed rgba(197, 164, 109, 0.3);
+  transition: all 0.3s ease;
+}
+.drop-zone:hover,
+.drop-zone.drag-over {
+  border-color: rgba(197, 164, 109, 0.7);
+  background: rgba(197, 164, 109, 0.05);
+}
+
+/* ── Button base ── */
+.btn-gold {
+  background: var(--gold);
+  color: #000;
+  padding: 0.75rem 1.75rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+.btn-gold:hover {
+  background: var(--gold-light);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(197, 164, 109, 0.3);
+}
+
+.btn-outline {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #d4d4d8;
+  padding: 0.75rem 1.75rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  transition: all 0.3s ease;
+}
+.btn-outline:hover {
+  border-color: var(--gold);
+  color: #fff;
+}

@@ -60,6 +60,7 @@ Backend (`backend/.env`):
 - `PORT`
 - `MONGO_URI`
 - `FRONTEND_URL`
+- `FRONTEND_URLS`
 - `JWT_SECRET`
 - `JWT_EXPIRES_IN`
 - `ADMIN_EMAIL`
@@ -81,14 +82,15 @@ Backend (`backend/.env`):
 Frontend (`frontend/.env.local`):
 
 - `NEXT_PUBLIC_API_BASE_URL`
+- `BACKEND_API_URL`
 - `NEXT_PUBLIC_CONTACT_PHONE`
 - `NEXT_PUBLIC_CONTACT_EMAIL`
 - `NEXT_PUBLIC_CONTACT_ADDRESS`
 - `NEXT_PUBLIC_CONTACT_LABEL`
 
-If you deploy on Vercel as two separate projects, set `NEXT_PUBLIC_API_BASE_URL` to the deployed backend URL, for example `https://your-backend.vercel.app/api`.
-If the backend is separate, also set `FRONTEND_URL` in the backend project to your frontend deployment URL so CORS accepts browser requests.
-If you use the monorepo Vercel service setup in this repo, the frontend can resolve the backend automatically through the `/_/backend/api` route prefix.
+If you deploy on Vercel as two separate projects, set `BACKEND_API_URL` in the frontend project to the backend deployment URL, for example `https://your-backend.vercel.app`.
+You can still override the API host directly with `NEXT_PUBLIC_API_BASE_URL` if you prefer an explicit client-side URL.
+If the backend is separate, set `FRONTEND_URL` or `FRONTEND_URLS` in the backend project to your frontend deployment URL so CORS accepts browser requests. For your current deployment, use `FRONTEND_URLS=https://bhardwaj-deco.vercel.app` and `BACKEND_API_URL=https://bhardwaj-deco-backend.vercel.app`.
 
 ## Branding Compliance
 

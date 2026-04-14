@@ -134,7 +134,7 @@ async function apiRequest<T>(path: string, options: RequestInit = {}, requiresAu
       headers
     });
   } catch {
-    throw new Error("Unable to connect to the API. Set NEXT_PUBLIC_API_BASE_URL to your deployed backend URL or verify the Vercel backend service.");
+    throw new Error("Unable to connect to the API. Set BACKEND_API_URL in the frontend Vercel project, or set NEXT_PUBLIC_API_BASE_URL to a deployed backend URL.");
   }
 
   const payload = await response.json().catch(() => ({}));

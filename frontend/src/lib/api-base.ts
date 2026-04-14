@@ -9,12 +9,8 @@ export function resolveApiBaseUrl(): string {
       return "http://localhost:5000/api";
     }
 
-    return `${window.location.origin}/_/backend/api`;
+    return "/api";
   }
 
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}/_/backend/api`;
-  }
-
-  return "http://localhost:5000/api";
+  return "/api";
 }

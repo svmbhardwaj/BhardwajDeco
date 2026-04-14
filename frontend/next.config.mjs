@@ -1,13 +1,15 @@
 /** @type {import('next').NextConfig} */
 import path from "path";
 
+const backendApiUrl = process.env.BACKEND_API_URL?.replace(/\/$/, "");
+
 const nextConfig = {
   outputFileTracingRoot: path.resolve("."),
   compress: true,
   productionBrowserSourceMaps: false,
-  
+
   images: {
-    formats: ['image/avif', 'image/webp'],
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: "https",
@@ -22,38 +24,53 @@ const nextConfig = {
         hostname: "ik.imagekit.io"
       }
     ],
-    minimumCacheTTL: 60 * 60 * 24 * 365 // 1 year
+    minimumCacheTTL: 60 * 60 * 24 * 365
   },
 
-  headers: async () => [
-    {
-      source: '/images/:path*',
-      headers: [
-        {
-          key: 'Cache-Control',
-          value: 'public, max-age=31536000, immutable'
-        }
-      ]
-    },
-    {
-      source: '/:path*.js',
-      headers: [
-        {
-          key: 'Cache-Control',
-          value: 'public, max-age=31536000, immutable'
-        }
-      ]
-    },
-    {
-      source: '/:path*.css',
-      headers: [
-        {
-          key: 'Cache-Control',
-          value: 'public, max-age=31536000, immutable'
-        }
-      ]
+  async headers() {
+    return [
+      {
+        source: "/images/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable"
+          }
+        ]
+      },
+      {
+        source: "/:path*.js",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable"
+          }
+        ]
+      },
+      {
+        source: "/:path*.css",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable"
+          }
+        ]
+      }
+    ];
+  },
+
+  async rewrites() {
+    if (!backendApiUrl) {
+      return [];
     }
-  ]
+
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${backendApiUrl}/api/:path*`
+      }
+    ];
+  }
 };
 
 export default nextConfig;

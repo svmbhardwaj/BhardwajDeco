@@ -109,13 +109,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               {/* Brand */}
               <div className="md:col-span-2">
                 <div className="flex items-center gap-3">
-                  <span className="relative h-10 w-10 overflow-hidden rounded-full border border-gold/30 bg-white/90 p-0.5">
+                  <span className="brand-logo relative h-10 w-10 overflow-hidden rounded-full p-0.5">
                     <Image
-                      src="/logo.png"
+                      src="/logo1.png"
                       alt="BhardwajDeco logo"
                       fill
                       sizes="40px"
-                      className="rounded-full object-contain"
+                      className="brand-logo-image rounded-full object-contain"
                     />
                   </span>
                   <h3 className="text-lg font-semibold tracking-wider text-white">
@@ -128,7 +128,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   interiors and exteriors.
                 </p>
                 <div className="mt-4 flex gap-2">
-                  <span className="tag">Trusted Since 2010</span>
+                  <span className="tag">Trusted Since 2020</span>
                 </div>
               </div>
 

@@ -5,7 +5,6 @@ import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
-import xssClean from "xss-clean";
 
 import { connectDB } from "./config/db.js";
 import { env } from "./config/env.js";
@@ -65,11 +64,16 @@ app.use(
   cors({
     origin: (origin, cb) => {
       // Allow requests with no origin (mobile apps, curl, etc.)
-      if (!origin || allowedOrigins.includes(origin)) {
-        cb(null, true);
-      } else {
-        cb(new Error(`CORS: Origin ${origin} not allowed`));
-      }
+      if (!origin) return cb(null, true);
+
+      // Check exact match
+      if (allowedOrigins.includes(origin)) return cb(null, true);
+
+      // Allow any *.vercel.app preview deployments
+      if (/^https:\/\/[\w-]+\.vercel\.app$/.test(origin)) return cb(null, true);
+
+      console.warn(`CORS blocked: ${origin}`);
+      cb(new Error(`CORS: Origin ${origin} not allowed`));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -84,9 +88,6 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // ─── NoSQL Injection Prevention ───
 app.use(mongoSanitize());
-
-// ─── XSS Prevention ───
-app.use(xssClean());
 
 // ─── Rate Limiting ───
 const apiLimiter = rateLimit({
@@ -182,25 +183,13 @@ async function bootstrap() {
     await connectDB();
 
     app.listen(env.port, () => {
-      console.log(`
-┌─────────────────────────────────────────────┐
-│                                             │
-│   🚀  BhardwajDeco API v2.0.0              │
-│                                             │
-│   Environment:  ${env.nodeEnv.padEnd(28)}│
-│   Port:         ${String(env.port).padEnd(28)}│
-│   Frontend:     ${env.frontendUrl.padEnd(28)}│
-│   Health:       http://localhost:${env.port}/health${" ".repeat(Math.max(0, 14 - String(env.port).length))}│
-│                                             │
-│   Features:                                 │
-│   ✅ JWT Authentication                     │
-│   ✅ ImageKit CDN                           │
-│   ✅ Brevo Transactional Email              │
-│   ✅ AI Description Enhancement             │
-│   ✅ Rate Limiting & Security               │
-│                                             │
-└─────────────────────────────────────────────┘
-      `);
+      console.log(`\n🚀 BhardwajDeco API v2.0.0`);
+      console.log(`   Environment : ${env.nodeEnv}`);
+      console.log(`   Port        : ${env.port}`);
+      console.log(`   Frontend    : ${env.frontendUrl}`);
+      console.log(`   Health      : http://localhost:${env.port}/health`);
+      console.log(`   CORS Origins: ${allowedOrigins.join(", ")}`);
+      console.log(`   Features    : JWT | ImageKit | Brevo | AI | Rate-Limiting\n`);
     });
   } catch (error) {
     console.error("❌ Failed to start server:", error);

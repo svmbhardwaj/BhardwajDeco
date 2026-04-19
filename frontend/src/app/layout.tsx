@@ -9,16 +9,47 @@ export const metadata = {
   title: "BhardwajDeco — Premium Surface Materials",
   description:
     "Explore premium laminates, wall cladding, soft stone veneers, and louver panels. A visual-first catalog for architects, designers, and homeowners.",
+  keywords: [
+    "laminates",
+    "wall cladding",
+    "soft stone",
+    "louver panels",
+    "interior design",
+    "premium surfaces",
+    "BhardwajDeco",
+    "home decor",
+    "Delhi"
+  ],
+  metadataBase: new URL("https://bhardwajdeco.vercel.app"),
+  openGraph: {
+    title: "BhardwajDeco — Premium Surface Materials",
+    description:
+      "Redefining surfaces. Elevating spaces. Explore premium laminates, wall cladding, soft stone veneers, and architectural panels.",
+    url: "https://bhardwajdeco.vercel.app",
+    siteName: "BhardwajDeco",
+    type: "website",
+    locale: "en_IN"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BhardwajDeco — Premium Surface Materials",
+    description:
+      "Redefining surfaces. Elevating spaces. Explore premium laminates, wall cladding, and more."
+  },
   icons: {
     icon: "/logo.png",
     apple: "/logo.png"
+  },
+  robots: {
+    index: true,
+    follow: true
   }
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-[#050505] text-white antialiased">
+      <body className="bg-[#050505] text-white antialiased grain-overlay">
         {/* ── Header ── */}
         <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/8 bg-black/70 backdrop-blur-xl">
           <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5 md:px-8 md:py-4">
@@ -70,6 +101,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
         {/* ── Footer ── */}
         <footer className="border-t border-white/8 bg-[#0a0a0a]">
+          {/* Gold gradient divider */}
+          <div className="section-divider" />
+
           <div className="mx-auto max-w-7xl px-6 py-16 md:px-8">
             <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
               {/* Brand */}
@@ -93,9 +127,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   cladding, soft stone veneers, and louver panels for modern
                   interiors and exteriors.
                 </p>
+                <div className="mt-4 flex gap-2">
+                  <span className="tag">Trusted Since 2010</span>
+                </div>
               </div>
 
-              {/* Categories */}
+              {/* Location */}
               <div>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-gold mb-4">
                   Location
@@ -114,22 +151,23 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 </p>
                 <ul className="space-y-2 text-sm text-zinc-300">
                   <li>
-                    <a href={`tel:${siteContact.phone.replace(/\s+/g, "")}`} className="transition hover:text-zinc-300">
+                    <a href={`tel:${siteContact.phone.replace(/\s+/g, "")}`} className="transition hover:text-gold">
                       {siteContact.phone}
                     </a>
                   </li>
                   <li>
-                    <a href={`mailto:${siteContact.email}`} className="transition hover:text-zinc-300">
+                    <a href={`mailto:${siteContact.email}`} className="transition hover:text-gold">
                       {siteContact.email}
                     </a>
                   </li>
-                  <li>{siteContact.studioLabel}</li>
-                  <li>{siteContact.address}</li>
+                  <li className="text-zinc-500">{siteContact.studioLabel}</li>
+                  <li className="text-zinc-500">{siteContact.address}</li>
                 </ul>
               </div>
             </div>
 
-            <div className="mt-12 pt-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="section-divider mt-12" />
+            <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
               <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">
                 © {new Date().getFullYear()} BhardwajDeco. All rights reserved.
               </p>

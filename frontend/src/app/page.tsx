@@ -17,7 +17,10 @@ import {
   Sparkles,
   Phone,
   Mail as MailIcon,
-  MapPin
+  MapPin,
+  Award,
+  Clock,
+  CheckCircle2
 } from "lucide-react";
 
 const categoryData = [
@@ -70,10 +73,17 @@ const features = [
   }
 ];
 
+const trustPoints = [
+  { icon: Award, label: "Certified Quality" },
+  { icon: Clock, label: "Fast Delivery" },
+  { icon: CheckCircle2, label: "Expert Support" }
+];
+
 export default function HomePage() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [latestUpdates, setLatestUpdates] = useState<UpdatePost[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -92,6 +102,8 @@ export default function HomePage() {
         setFeaturedProducts([]);
         setLatestUpdates([]);
         console.error("Failed to load homepage API data:", error);
+      } finally {
+        if (isActive) setDataLoading(false);
       }
     })();
 
@@ -116,9 +128,9 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-[#050505]" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent" />
 
-        {/* Decorative elements */}
-        <div className="absolute top-20 right-20 h-64 w-64 rounded-full bg-gold/5 blur-[100px]" />
-        <div className="absolute bottom-40 left-10 h-48 w-48 rounded-full bg-gold/3 blur-[80px]" />
+        {/* Animated decorative orbs */}
+        <div className="orb orb-gold w-72 h-72 top-16 right-16 animate-subtle-shift" />
+        <div className="orb orb-warm w-56 h-56 bottom-32 left-8 animate-subtle-shift" style={{ animationDelay: "-10s" }} />
 
         <div className="relative mx-auto w-full max-w-7xl px-6 pb-16 pt-32 text-white md:px-8 md:pb-24">
           <Reveal>
@@ -127,7 +139,7 @@ export default function HomePage() {
             </p>
           </Reveal>
           <Reveal delay={0.1}>
-            <h1 className="max-w-5xl text-5xl font-semibold leading-[1.1] md:text-8xl font-display">
+            <h1 className="max-w-5xl hero-title text-5xl font-semibold leading-[1.1] md:text-8xl font-display">
               Bhardwaj<span className="gradient-text">Deco</span>
             </h1>
           </Reveal>
@@ -151,23 +163,32 @@ export default function HomePage() {
           {/* Stats bar */}
           <Reveal delay={0.4}>
             <div className="mt-14 flex flex-wrap gap-8 md:gap-14 border-t border-white/10 pt-8">
-              <div>
+              <div className="stat-value">
                 <p className="text-3xl font-display text-white">4+</p>
                 <p className="text-[10px] uppercase tracking-widest text-zinc-500 mt-1">
                   Product Categories
                 </p>
               </div>
-              <div>
+              <div className="stat-value" style={{ animationDelay: "0.1s" }}>
                 <p className="text-3xl font-display text-white">12+</p>
                 <p className="text-[10px] uppercase tracking-widest text-zinc-500 mt-1">
                   Premium Materials
                 </p>
               </div>
-              <div>
+              <div className="stat-value" style={{ animationDelay: "0.2s" }}>
                 <p className="text-3xl font-display text-white">10+</p>
                 <p className="text-[10px] uppercase tracking-widest text-zinc-500 mt-1">
                   Years Warranty
                 </p>
+              </div>
+              {/* Trust badges (desktop) */}
+              <div className="hidden lg:flex items-center gap-4 ml-auto">
+                {trustPoints.map((tp) => (
+                  <div key={tp.label} className="flex items-center gap-1.5 text-zinc-500">
+                    <tp.icon size={14} className="text-gold/60" />
+                    <span className="text-[10px] uppercase tracking-widest">{tp.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </Reveal>
@@ -189,7 +210,7 @@ export default function HomePage() {
               <Link href="/products">
                 <motion.article
                   whileHover={{ scale: 1.01 }}
-                  className="group relative overflow-hidden rounded-xl border border-white/8 h-64 md:h-80"
+                  className="group relative overflow-hidden rounded-xl border border-white/8 h-64 md:h-80 card-glow"
                 >
                   <Image
                     src={cat.image}
@@ -222,35 +243,52 @@ export default function HomePage() {
       </section>
 
       {/* ═══ FEATURED PRODUCTS ═══ */}
-      {featuredProducts.length > 0 && (
-        <section className="bg-[#0a0a0a] border-y border-white/5">
-          <div className="mx-auto max-w-7xl px-6 py-20 md:px-8 md:py-28">
-            <div className="flex items-end justify-between mb-14">
-              <Reveal>
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.3em] text-gold">Curated</p>
-                  <h2 className="mt-4 text-4xl md:text-6xl font-display">
-                    Featured Materials
-                  </h2>
-                </div>
-              </Reveal>
-              <Reveal delay={0.1}>
-                <Link
-                  href="/products"
-                  className="hidden md:inline-flex items-center gap-2 text-xs uppercase tracking-widest text-gold hover:underline underline-offset-8"
-                >
-                  View All <ArrowRight size={14} />
-                </Link>
-              </Reveal>
-            </div>
+      <section className="bg-[#0a0a0a] border-y border-white/5">
+        <div className="mx-auto max-w-7xl px-6 py-20 md:px-8 md:py-28">
+          <div className="flex items-end justify-between mb-14">
+            <Reveal>
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.3em] text-gold">Curated</p>
+                <h2 className="mt-4 text-4xl md:text-6xl font-display">
+                  Featured Materials
+                </h2>
+              </div>
+            </Reveal>
+            <Reveal delay={0.1}>
+              <Link
+                href="/products"
+                className="hidden md:inline-flex items-center gap-2 text-xs uppercase tracking-widest text-gold hover:underline underline-offset-8"
+              >
+                View All <ArrowRight size={14} />
+              </Link>
+            </Reveal>
+          </div>
 
+          {dataLoading ? (
+            /* Premium skeleton loading */
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={`product-skeleton-${i}`} className="rounded-xl border border-white/8 overflow-hidden">
+                  <div className="skeleton aspect-square" />
+                  <div className="p-4 space-y-3">
+                    <div className="skeleton h-3 w-16 rounded" />
+                    <div className="skeleton h-4 w-32 rounded" />
+                    <div className="flex justify-between">
+                      <div className="skeleton h-3 w-12 rounded" />
+                      <div className="skeleton h-3 w-16 rounded" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : featuredProducts.length > 0 ? (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {featuredProducts.map((product, index) => (
                 <Reveal key={product._id} delay={index * 0.08}>
                   <Link href={`/products/${product.slug}`}>
                     <motion.div
                       whileHover={{ y: -4 }}
-                      className="group glass rounded-xl overflow-hidden transition-all hover:border-gold/30"
+                      className="group glass rounded-xl overflow-hidden transition-all hover:border-gold/30 card-glow"
                     >
                       <div className="relative aspect-square overflow-hidden">
                         <Image
@@ -261,6 +299,11 @@ export default function HomePage() {
                           className="object-cover transition-transform duration-700 group-hover:scale-110"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                        {product.isFeatured && (
+                          <span className="absolute top-3 left-3 tag">
+                            <Sparkles size={10} className="mr-1" /> Featured
+                          </span>
+                        )}
                       </div>
                       <div className="p-4">
                         <p className="text-[9px] uppercase tracking-[0.2em] text-zinc-500">
@@ -283,18 +326,22 @@ export default function HomePage() {
                 </Reveal>
               ))}
             </div>
-
-            <div className="mt-8 text-center md:hidden">
-              <Link
-                href="/products"
-                className="btn-outline rounded-lg inline-flex items-center gap-2"
-              >
-                View All Products <ArrowRight size={14} />
-              </Link>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-zinc-500 text-sm">No featured products yet. Check back soon!</p>
             </div>
+          )}
+
+          <div className="mt-8 text-center md:hidden">
+            <Link
+              href="/products"
+              className="btn-outline rounded-lg inline-flex items-center gap-2"
+            >
+              View All Products <ArrowRight size={14} />
+            </Link>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* ═══ WHY US ═══ */}
       <section className="mx-auto max-w-7xl px-6 py-20 md:px-8 md:py-28">
@@ -310,7 +357,7 @@ export default function HomePage() {
             <Reveal key={feature.title} delay={index * 0.08}>
               <motion.div
                 whileHover={{ y: -4 }}
-                className="glass rounded-xl p-6 transition-all hover:border-gold/20"
+                className="glass rounded-xl p-6 transition-all hover:border-gold/20 card-glow"
               >
                 <div className="rounded-lg bg-gold/10 p-3 w-fit text-gold mb-4">
                   <feature.icon size={24} />
@@ -321,6 +368,40 @@ export default function HomePage() {
             </Reveal>
           ))}
         </div>
+      </section>
+
+      {/* ═══ CTA BANNER ═══ */}
+      <section className="relative overflow-hidden">
+        <div className="section-divider" />
+        <div className="mx-auto max-w-7xl px-6 py-16 md:px-8 md:py-20">
+          <Reveal>
+            <div className="glass-gold rounded-2xl p-8 md:p-12 text-center relative overflow-hidden">
+              <div className="orb orb-gold w-48 h-48 -top-12 -right-12" />
+              <div className="orb orb-warm w-40 h-40 -bottom-10 -left-10" />
+              <div className="relative z-10">
+                <p className="text-[11px] uppercase tracking-[0.3em] text-gold mb-4">Ready to Transform?</p>
+                <h2 className="text-3xl md:text-4xl font-display text-white mb-4">
+                  Elevate Your Space Today
+                </h2>
+                <p className="text-sm text-zinc-400 max-w-lg mx-auto leading-7 mb-8">
+                  Visit our studio for hands-on material sampling, expert consultation, and personalized project guidance.
+                </p>
+                <div className="flex flex-wrap justify-center gap-4">
+                  <Link href="/products" className="btn-gold rounded-lg inline-flex items-center gap-2">
+                    Browse Materials <ArrowRight size={16} />
+                  </Link>
+                  <a
+                    href={`tel:${siteContact.phone.replace(/\s+/g, "")}`}
+                    className="btn-outline rounded-lg inline-flex items-center gap-2"
+                  >
+                    <Phone size={14} /> Call Us
+                  </a>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+        <div className="section-divider" />
       </section>
 
       {/* ═══ LATEST UPDATES ═══ */}
@@ -350,7 +431,7 @@ export default function HomePage() {
                   <Link href={`/updates/${post.slug}`}>
                     <motion.article
                       whileHover={{ y: -4 }}
-                      className="group glass rounded-xl overflow-hidden transition-all hover:border-gold/30"
+                      className="group glass rounded-xl overflow-hidden transition-all hover:border-gold/30 card-glow"
                     >
                       <div className="relative h-48 overflow-hidden">
                         <Image

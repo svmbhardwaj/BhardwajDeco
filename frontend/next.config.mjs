@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 import path from "path";
 
-const backendApiUrl = process.env.BACKEND_API_URL?.replace(/\/$/, "");
+const backendApiUrl = (process.env.BACKEND_API_URL || "https://bhardwajdeco.onrender.com").replace(/\/$/, "");
 
 const nextConfig = {
   outputFileTracingRoot: path.resolve("."),
@@ -60,10 +60,6 @@ const nextConfig = {
   },
 
   async rewrites() {
-    if (!backendApiUrl) {
-      return [];
-    }
-
     return [
       {
         source: "/api/:path*",
